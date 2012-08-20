@@ -1,3 +1,4 @@
+'Practicing Source Code Control
 myDSN="dsn=Yahoo_login_test;uid=pntadmin;pwd=pnt1234;"   
 
 mySQL = "Select  *  from tbl_Yahoo_login_test"
