@@ -1,0 +1,199 @@
+myDSN="dsn=Yahoo_login_test;uid=pntadmin;pwd=pnt1234;"   
+
+mySQL = "Select  *  from tbl_Yahoo_login_test"
+
+Datatable.GlobalSheet.AddParameter "UserId",""
+Datatable.GlobalSheet.AddParameter "Password",""
+Datatable.GlobalSheet.AddParameter "Status",""
+
+
+
+Set con=CreateObject("ADODB.Connection")
+
+Set rs=CreateObject("ADODB.Recordset")
+
+con.Open myDSN
+
+'Msgbox ("SQL Connection is established.")
+
+rs.Open mySQL,con
+'Msgbox ("SQL Connection is established with the recordset.")
+
+Do While Not rs.EOF
+	row=row+1
+	rs.MoveNext
+Loop
+
+'Msgbox ("No of login id= " & row)
+
+fldcnt=rs.Fields.Count
+
+'Msgbox ("No of Column= " & fldcnt)
+
+rs.MoveFirst
+
+row=0
+
+Do While Not rs.EOF
+	                               For col=0 to rs.Fields.Count-1
+                                                  DataTable.Value(col+1,"Global")=rs.Fields(col)
+
+								   Next
+     DataTable.SetCurrentRow(row+2)
+
+	 row=row+1
+	 rs.MoveNext
+Loop
+
+SystemUtil.Run "iexplore.exe","www.yahoo.com"
+
+Set wBrowser=Description.Create()
+wBrowser("micclass").Value="Browser"
+
+
+Set wPage=Description.Create()
+wPage("micclass").Value="Page"
+
+wait(5)
+
+For k=0 to row-1
+
+		clickWebElement wBrowser,wPage, "Yahoo! Mail"
+
+		wait(5)
+
+		DataTable.SetCurrentRow (k)
+
+		YahooLoginID= DataTable.RawValue("UserId", "Global")
+		YahooLoginID=Trim(YahooLoginID)
+
+		YahooPassword= DataTable.RawValue("Password", "Global")
+		YahooPassword=Trim(YahooPassword)
+
+		'MsgBox YahooLoginID & "--"  & YahooPassword
+
+
+		enterEdit wBrowser,wPage, "login", YahooLoginID
+
+
+
+		enterEdit wBrowser,wPage, "passwd", YahooPassword
+
+
+		clickButton wBrowser,wPage, "Sign In"
+
+		rValue=0
+		ExistLink wBrowser,wPage, "Sign Out", rValue
+
+		wait(5)
+
+		'Custom Checkpoint
+		If rValue=1	 Then
+			DataTable.Value("Status", "Global")= "Login Successful"
+			wait(3)
+			clickLink wBrowser,wPage, "Sign Out"
+		Else 
+			DataTable.Value("Status", "Global")= "Login Failed"
+		End If
+
+Next
+
+		Browser(wBrowser).Close
+
+
+
+	Function clickWebElement (wBrowser, wPage, WebElementtext)
+	 				Set wWebElement = description.Create()																	'dynamically creating Link
+					wWebElement("micclass").value = "WebElement"
+					wWebElement("html tag").value = "SPAN"					                       																	'setting Link's class property
+					set cWebElements = Browser(wBrowser).Page(wPage).ChildObjects(wWebElement)		'getting all the webLink child objects
+					WebElementCount = cWebElements.count
+					For i=0 to WebElementCount-1
+						If cWebElements(i).getRoProperty("innertext") = WebElementtext Then										'verifying the name property of the webLink with Yahoo! Mail
+							cWebElements(i).click																										'click the following link
+							Exit for
+						End If
+					Next
+		End Function
+
+		Function enterEdit (wBrowser, wPage, EditName, EString)
+				Set wEdit = Description.Create()					   	   												'dynamically creating WebEdit box
+				wEdit("micclass").value = "WebEdit"																	'setting WebEdit's class property
+				set cEdits = Browser(wBrowser).Page(wPage).ChildObjects(wEdit)		'getting all the Web Edit boxes
+				editCountd = cEdits.count																						'total web edit boxes for the current page
+				For j=0 to editCountd-1
+					If cEdits(j).getRoProperty("name") = EditName Then 			'verifying NAME property of the Web Edit box
+						 cEdits(j).set EString																										'setting the userID
+						Exit for
+					End If
+				Next
+		End Function
+
+
+		Function clickButton (wBrowser, wPage, ButtonName)
+				Set wButton = description.Create()																					'dynamically creating a WebButton
+				wButton("micclass").value = "WebButton"			  															'setting WebButton's class property
+				Set cButtons = Browser(wBrowser).Page(wPage).ChildObjects(wButton)
+				buttonCount = cButtons.count
+				For i = 0 to buttonCount - 1
+					If cButtons(i).getRoProperty("name") = ButtonName Then
+						cButtons(i).click
+						Exit for
+					End If
+				Next
+		End Function
+
+
+		Function clickLink	(wBrowser, wPage, LinkName)
+	 				Set wLink = description.Create()																	'dynamically creating Link
+					wLink("micclass").value = "Link"
+					 'wLink("html tag").value = "A" 																				  'setting Link's class property
+					set cLinks = Browser(wBrowser).Page(wPage).ChildObjects(wLink)		'getting all the webLink child objects
+					linkCount = cLinks.count
+					For i=0 to linkCount-1
+						If cLinks(i).getRoProperty("name") = LinkName Then										'verifying the TEXT property of the webLink with Mail
+							cLinks(i).click
+							Exit for
+						End If
+					Next
+		End Function
+		
+
+
+		Function ExistLink	(wBrowser, wPage, LinkName, rValue)
+	 				Set wLink = description.Create()																	'dynamically creating Link
+					wLink("micclass").value = "Link"
+					 'wLink("html tag").value = "A" 																				  'setting Link's class property
+					set cLinks = Browser(wBrowser).Page(wPage).ChildObjects(wLink)		'getting all the webLink child objects
+					linkCount = cLinks.count
+					For i=0 to linkCount-1
+						If cLinks(i).getRoProperty("name") = LinkName Then										'verifying the TEXT property of the webLink with Mail
+                            rValue=1
+                            Exit for
+						End If
+					Next
+		End Function
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
